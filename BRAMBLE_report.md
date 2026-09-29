@@ -6,10 +6,10 @@ diameter (CD), fit separately per species but sharing statistical strength acros
 the results actually mean -- not just the numbers, but why each check exists.
 
 ## 1. Data
-- Total trees: 204
-- Species: Argan, Carob, Schinus, Olive
+- Total trees: 240
+- Species: Argan, Carob, Schinus, Olive, Eucalyptus
 - Predictors: Ht, CD
-- Train / test split: 163 / 41 trees (80/20, stratified by species
+- Train / test split: 192 / 48 trees (80/20, stratified by species
   so each species keeps its own proportion in both sets)
 
 ## 2. Model
@@ -26,10 +26,10 @@ MCMC (NUTS sampler in PyMC), using a non-centered parameterization, a numerical 
 helps the sampler converge and does not change what is being estimated.
 
 ## 3. Convergence (Step 7)
-- Divergences: 3 (0 is ideal; a handful out of thousands of draws is not a concern)
-- Max R-hat: 1.002 (target: as close to 1.00 as possible -- means the 4
+- Divergences: 2 (0 is ideal; a handful out of thousands of draws is not a concern)
+- Max R-hat: 1.001 (target: as close to 1.00 as possible -- means the 4
   independent chains agree with each other)
-- Min ESS: 3212 (effective sample size -- how many *independent*
+- Min ESS: 1313 (effective sample size -- how many *independent*
   posterior draws the chains produced; higher is more precise)
 
 These three numbers together say the sampler actually explored the posterior properly and the
@@ -37,8 +37,8 @@ fit can be trusted -- if any of them looked bad, nothing downstream would be rel
 
 ## 4. Overall + per-species performance (Step 9, training data)
 
-**Overall (all species combined):** R2 = 0.808, RMSE = 18.18 kg,
-CV% = 58.4%, Coverage = 82.2% (target ~80%).
+**Overall (all species combined):** R2 = 0.851, RMSE = 164.07 kg,
+CV% = 84.7%, Coverage = 85.4% (target ~80%).
 
 An overall number can hide a species-specific weakness -- a few well-predicted species can
 compensate for one badly-predicted one and the average would still look fine. The table below
@@ -46,13 +46,14 @@ splits the same predictions out by species:
 
 | Species | R2 | RMSE | CV % | Coverage % | N trees |
 | --- | --- | --- | --- | --- | --- |
-| Argan | 0.18 | 16.75 | 112.40 | 64.70 | 34 |
-| Carob | 0.83 | 21.41 | 39.90 | 92.10 | 38 |
-| Schinus | 0.72 | 24.17 | 56.20 | 81.00 | 42 |
-| Olive | 0.92 | 6.96 | 47.20 | 87.80 | 49 |
+| Argan | 0.27 | 15.90 | 106.70 | 64.70 | 34 |
+| Carob | 0.84 | 20.72 | 38.60 | 94.70 | 38 |
+| Schinus | 0.73 | 24.10 | 56.60 | 83.30 | 42 |
+| Olive | 0.92 | 6.21 | 48.70 | 85.70 | 49 |
+| Eucalyptus | 0.10 | 420.08 | 37.80 | 100.00 | 29 |
 
-**Strongest fit:** Olive (R2 = 0.923). **Weakest fit:** Argan
-(R2 = 0.184) -- Ht and CD alone carry little information for this species; see the
+**Strongest fit:** Olive (R2 = 0.921). **Weakest fit:** Eucalyptus
+(R2 = 0.100) -- Ht and CD alone carry little information for this species; see the
 known limitation at the end of this report.
 
 The figure below shows every tree's real biomass (x-axis) against the model's median
@@ -79,11 +80,11 @@ context.
 
 Training-set calibration can look good partly because the model was fit on those exact trees.
 The real test is trees the model never saw during fitting:
-- R2: 0.826
-- RMSE: 16.39 kg
-- Coverage: 78.0% (target ~80%)
+- R2: 0.655
+- RMSE: 191.77 kg
+- Coverage: 81.2% (target ~80%)
 
-With only 41 held-out trees, a single split's coverage number can swing quite a bit
+With only 48 held-out trees, a single split's coverage number can swing quite a bit
 just from which trees happened to land in the test set -- Section 8 checks this properly with
 repeated cross-validation instead of relying on one split.
 
@@ -102,7 +103,7 @@ real value (computed on the log scale, so it is comparable across small and larg
 region of their own predicted distribution -- i.e. trees the model predicted badly, not
 necessarily trees outside their P10-P90 range (a related but stricter check). A species whose
 line trends downward as trees get larger, while the others trend upward, is a species where the
-model's confidence does not scale correctly with size -- watch for Argan here.
+model's confidence does not scale correctly with size -- watch for Eucalyptus here.
 
 ## 8. Normal vs Student-t likelihood comparison (Step 11)
 
@@ -119,8 +120,8 @@ own:
 
 | Likelihood | 80/20 Split -- Coverage % | 5-Fold CV -- Coverage % (mean +/- std) | Leave-One-Out -- elpd (+/- se) |
 | --- | --- | --- | --- |
-| Normal | 78.05 | 82.9 +/- 5.6 | -180 +/- 17 |
-| Student-t | 65.85 | 68.6 +/- 5.7 | -160 +/- 16 |
+| Normal | 81.25 | 82.5 +/- 4.3 | -200 +/- 19 |
+| Student-t | 70.83 | 69.6 +/- 3.2 | -170 +/- 17 |
 
 ![Normal vs Student-t](report_figures/normal_vs_studentt.png)
 
@@ -135,9 +136,9 @@ range is used for downstream.
 
 ## 9. Known limitation / next step
 
-**Argan** remains the weakest species (R2 = 0.184 with Ht+CD alone); it also
+**Eucalyptus** remains the weakest species (R2 = 0.100 with Ht+CD alone); it also
 needed the largest bias-correction factor when back-transforming from the log scale. This is not
 a problem with the model itself (the hierarchy, priors, and sampler are all behaving correctly)
--- it is that height and crown diameter alone do not distinguish Argan trees well. Adding
+-- it is that height and crown diameter alone do not distinguish Eucalyptus trees well. Adding
 basal diameter (BD) as a third predictor is the identified next step, specifically for this
 species, and has not yet been applied in this version of the model.
