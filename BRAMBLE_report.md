@@ -9,7 +9,7 @@ just the numbers, but why each check exists.
 ## 1. Data
 - Total trees: 204
 - Species: Argan, Carob, Schinus, Olive
-- Predictors: Ht, CD
+- Predictors: Ht, CD, BD
 - Train / test split: 163 / 41 trees (80/20, stratified by species
   so each species keeps its own proportion in both sets)
 
@@ -27,10 +27,10 @@ PyMC), using a non-centered parameterization, a numerical trick that only helps 
 converge and does not change what is being estimated.
 
 ## 3. Convergence (Step 7)
-- Divergences: 0 (0 is ideal; a handful out of thousands of draws is not a concern)
+- Divergences: 13 (0 is ideal; a handful out of thousands of draws is not a concern)
 - Max R-hat: 1.003 (target: as close to 1.00 as possible -- means the 4
   independent chains agree with each other)
-- Min ESS: 1956 (effective sample size -- how many *independent*
+- Min ESS: 1914 (effective sample size -- how many *independent*
   posterior draws the chains produced; higher is more precise)
 
 These three numbers together say the sampler actually explored the posterior properly and the
@@ -38,8 +38,8 @@ fit can be trusted -- if any of them looked bad, nothing downstream would be rel
 
 ## 4. Overall + per-species performance (Step 9, training data)
 
-**Overall (all species combined):** R2 = 0.803, RMSE = 18.41 kg,
-CV% = 59.1%, Coverage = 87.7% (target ~80%).
+**Overall (all species combined):** R2 = 0.820, RMSE = 17.59 kg,
+CV% = 56.5%, Coverage = 87.1% (target ~80%).
 
 An overall number can hide a species-specific weakness -- a few well-predicted species can
 compensate for one badly-predicted one and the average would still look fine. The table below
@@ -47,13 +47,13 @@ splits the same predictions out by species:
 
 | Species | R2 | RMSE | CV % | Coverage % | N trees |
 | --- | --- | --- | --- | --- | --- |
-| Argan | 0.33 | 15.20 | 102.00 | 85.30 | 34 |
-| Carob | 0.84 | 20.71 | 38.60 | 84.20 | 38 |
-| Schinus | 0.67 | 26.15 | 60.80 | 88.10 | 42 |
-| Olive | 0.92 | 6.96 | 47.30 | 91.80 | 49 |
+| Argan | 0.51 | 12.93 | 86.80 | 85.30 | 34 |
+| Carob | 0.85 | 20.26 | 37.70 | 86.80 | 38 |
+| Schinus | 0.69 | 25.42 | 59.10 | 83.30 | 42 |
+| Olive | 0.94 | 6.36 | 43.20 | 91.80 | 49 |
 
-**Strongest fit:** Olive (R2 = 0.923). **Weakest fit:** Argan
-(R2 = 0.328) -- see the known limitation at the end of this report.
+**Strongest fit:** Olive (R2 = 0.936). **Weakest fit:** Argan
+(R2 = 0.514) -- see the known limitation at the end of this report.
 
 ![Observed vs Predicted, overall and per species](report_figures/obs_vs_pred_per_species.png)
 
@@ -74,9 +74,9 @@ scatter evenly across 0-100.
 
 Training-set calibration can look good partly because the model was fit on those exact trees.
 The real test is trees the model never saw during fitting:
-- R2: 0.798
-- RMSE: 17.66 kg
-- Coverage: 82.9% (target ~80%)
+- R2: 0.790
+- RMSE: 18.01 kg
+- Coverage: 85.4% (target ~80%)
 
 ## 6b. Stand-level total biomass check
 
@@ -87,9 +87,9 @@ draw shares that draw's species-level parameters), giving a distribution of plau
 The real field-measured total is then compared against that distribution.
 
 - Real total biomass: 5074.7 kg
-- Predicted total (P10-P90): 4618.1 - 5802.6 kg (median 5143.5 kg)
+- Predicted total (P10-P90): 4604.7 - 5703.3 kg (median 5092.8 kg)
 - Real total inside P10-P90? True
-- Real total lands at percentile: 43.8 (50 = perfectly centered)
+- Real total lands at percentile: 48.1 (50 = perfectly centered)
 
 ![Total biomass check](report_figures/total_biomass_check.png)
 
@@ -106,8 +106,8 @@ model puts exactly on the tree's real value (computed on the log scale).
 
 | Likelihood | 80/20 Split -- Coverage % | 5-Fold CV -- Coverage % (mean +/- std) | Leave-One-Out -- elpd (+/- se) |
 | --- | --- | --- | --- |
-| Normal | 82.93 | 82.9 +/- 5.7 | -170 +/- 18 |
-| Student-t | 80.49 | 75.0 +/- 4.2 | -160 +/- 15 |
+| Normal | 85.37 | 84.8 +/- 5.8 | -160 +/- 19 |
+| Student-t | 80.49 | 73.0 +/- 6.4 | -150 +/- 15 |
 
 ![Normal vs Student-t](report_figures/normal_vs_studentt.png)
 
@@ -116,7 +116,7 @@ sensitive to any single arbitrary split.
 
 ## 9. Known limitation / next step
 
-**Argan** remains the weakest species (R2 = 0.328) even with Ht, CD and BD
+**Argan** remains the weakest species (R2 = 0.514) even with Ht, CD and BD
 together. Basal diameter was added specifically to help this species and improved its fit, but
 did not fully close the gap. This is treated as a limitation of the available measurements for
 this species rather than a flaw in the model itself, and further tuning specifically aimed at
