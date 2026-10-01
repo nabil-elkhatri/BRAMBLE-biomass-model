@@ -88,9 +88,9 @@ draw shares that draw's species-level parameters), giving a distribution of plau
 The real field-measured total is then compared against that distribution.
 
 - Real total biomass: 5074.7 kg
-- Predicted total (P10-P90): 4603.5 - 5677.2 kg (median 5084.5 kg)
+- Predicted total (P10-P90): 4587.4 - 5698.3 kg (median 5102.9 kg)
 - Real total inside P10-P90? True
-- Real total lands at percentile: 49.1 (50 = perfectly centered)
+- Real total lands at percentile: 47.5 (50 = perfectly centered)
 
 ![Total biomass check](report_figures/total_biomass_check.png)
 
